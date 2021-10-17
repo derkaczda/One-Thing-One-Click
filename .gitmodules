@@ -1,0 +1,3 @@
+[submodule "3D-U-Net/lib/spconv"]
+	path = 3D-U-Net/lib/spconv
+	url = https://github.com/derkaczda/spconv
