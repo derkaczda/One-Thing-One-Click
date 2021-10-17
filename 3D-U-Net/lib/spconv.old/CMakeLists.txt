@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} -std=c++11 -gencode etc etc)
 project(SparseConv LANGUAGES CXX CUDA VERSION 1.0)
 
 option(SPCONV_BuildTests "Build the unit tests when BUILD_TESTING is enabled." ON)
