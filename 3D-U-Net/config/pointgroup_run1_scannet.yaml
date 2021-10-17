@@ -5,7 +5,7 @@ GENERAL:
   dataset_dir: data/scannetv2_inst.py
 
 DATA:
-  data_root: /home/lzz/sdc1/pg/ #data root
+  data_root: /data #data root
   dataset: train_weakly #train 1st iter, train_weakly; train other iters, train0.9 
   filename_suffix: _inst_nostuff.pth
 
