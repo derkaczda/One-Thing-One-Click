@@ -69,12 +69,12 @@ class Dataset:
         self.test_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
 
         self.test_files = []
+        print("before for loop")
         for i in self.test_file_names:
-          print (i)
-          self.test_files.append(torch.load(i)) 
-          self.test_files.append(torch.load(i)) 
-          self.test_files.append(torch.load(i)) 
+        #   print (i)
+          self.test_files.append(torch.load(i))
         logger.info('Testing samples ({}): {}'.format(self.test_split, len(self.test_files)))
+        print("after for loop")
 
         test_set = list(np.arange(len(self.test_files)))
         self.test_data_loader = DataLoader(test_set, batch_size=1, collate_fn=self.testMerge, num_workers=self.test_workers,
