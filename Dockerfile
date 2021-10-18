@@ -30,7 +30,7 @@ ENV CUDA_ROOT /usr/local/cuda
 WORKDIR /otoc/3D-U-Net/lib/spconv
 RUN python3 setup.py bdist_wheel
 RUN pip3 install dist/*.whl
-RUN ln -s /otoc/3D-U-Net/"$(find build -type d -name "lib.*" -print)"/spconv/libspconv.so /otoc/3D-U-Net/spconv/libspconv.so
+RUN ln -s /otoc/3D-U-Net/lib/spconv/"$(find build -type d -name "lib.*" -print)"/spconv/libspconv.so /otoc/3D-U-Net/spconv/libspconv.so
 
 # Compile pointgroup_ops
 # need to change the architecture to match
