@@ -18,6 +18,7 @@ RUN pip3 install scipy
 RUN pip3 install cmake
 RUN pip3 install pillow
 RUN pip3 install torch==1.9.1+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip3 install tqdm
 # RUN pip3 install torch==1.9.1
 
 
