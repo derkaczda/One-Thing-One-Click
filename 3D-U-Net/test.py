@@ -78,6 +78,7 @@ from util.log import logger
 import util.utils as utils
 import util.eval as eval
 from util_iou import *
+from tqdm import tqdm
 
 fx_rgb = 5.1885790117450188e+02
 fy_rgb = 5.1946961112127485e+02
@@ -139,10 +140,11 @@ def test(model, model_fn, data_name, epoch):
         start = time.time()
 
         matches = {}
+        progress_bar = tqdm(total=len(dataloader))
         for i, batch in enumerate(dataloader):
             N = batch['feats'].shape[0]
             test_scene_name = dataset.test_file_names[int(batch['id'][0]/3)].split('/')[-1][:12]
-            print (test_scene_name)
+            # print (test_scene_name)
 
 
             start1 = time.time()
@@ -159,7 +161,7 @@ def test(model, model_fn, data_name, epoch):
 
             if i%3==2:
               semantic_pred = semantic_acc.max(1)[1]  # (N) long, cuda
-              semantic_pred=semantic_pred.detach().cpu().numpy()   
+              semantic_pred=semantic_pred.detach().cpu().numpy()
               labels=batch['labels'].detach().cpu().numpy()  #[:int(N/3)]
 
 
@@ -170,6 +172,8 @@ def test(model, model_fn, data_name, epoch):
               for j in range(labels.shape[0]):
                 f1.write(str(semantic_pred[j])+'\n')
               f1.close()
+
+            progress_bar.update(1)
 
 def non_max_suppression(ious, scores, threshold):
     ixs = scores.argsort()[::-1]
