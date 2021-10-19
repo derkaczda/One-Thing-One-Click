@@ -13,11 +13,14 @@ for i, x in enumerate([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 16, 24, 28, 33
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_split', help='data split (train / val / test)', default='train')
+parser.add_argument('--data_path', type=str)
+parser.add_argument('--label_file', type=str)
+parser.add_argument('--dest', type=str)
 opt = parser.parse_args()
 
 split = opt.data_split
 print('data split: {}'.format(split))
-files = sorted(glob.glob('/home/lzz/sdc1/scannetv2/scannetv2/scans/scene*_*/*_vh_clean_2.ply'))
+files = sorted(glob.glob(f'{opt.data_path}/scans/scene*_*/*_vh_clean_2.ply'))
 print (len(files))
 
 dic={}
@@ -45,7 +48,7 @@ dic['otherfurniture']=19
 
 
 name2label={}
-with open("scannetv2-labels.combined.tsv") as fd:
+with open(f"{opt.label_file}") as fd:
     rd = csv.reader(fd, delimiter="\t", quotechar='"')
     start=1
     for row in rd:
@@ -125,7 +128,7 @@ def f(fn):
         assert(len(np.unique(sem_labels[pointids])) == 1)
     mask=np.where(instance_labels==-100)
     sem_labels[mask]=-100
-    torch.save((coords, colors, sem_labels, groups, seg), 'train_weakly/'+name+'_inst_nostuff.pth')
+    torch.save((coords, colors, sem_labels, groups, seg), opt.dest +'/'+name+'_inst_nostuff.pth')
     print('Saving to ' + fn[:-15]+'_inst_nostuff.pth')
 
 # for fn in files:
