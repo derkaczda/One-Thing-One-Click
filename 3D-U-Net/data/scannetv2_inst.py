@@ -14,6 +14,7 @@ sys.path.append('../')
 from util.config import cfg
 from util.log import logger
 from lib.pointgroup_ops.functions import pointgroup_ops
+from .dataset import Scannet
 
 class Dataset:
     def __init__(self, test=False):
@@ -37,46 +38,55 @@ class Dataset:
 
 
     def trainLoader(self):
-        train_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
+        # train_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
 
-        self.train_files = []
-        for i in train_file_names:
-          print (i)
-          self.train_files.append(torch.load(i))
+        # self.train_files = []
+        # for i in train_file_names:
+        #   print (i)
+        #   self.train_files.append(torch.load(i))
 
 
-        logger.info('Training samples: {}'.format(len(self.train_files)))
+        # logger.info('Training samples: {}'.format(len(self.train_files)))
 
+        # train_set = list(range(len(self.train_files)))
+        self.train_files = Scannet(self.data_root, self.dataset, self.filename_suffix)
         train_set = list(range(len(self.train_files)))
         self.train_data_loader = DataLoader(train_set, batch_size=self.batch_size, collate_fn=self.trainMerge, num_workers=self.train_workers,
                                             shuffle=True, sampler=None, drop_last=True, pin_memory=True)
 
 
     def valLoader(self):
-        val_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
+        # val_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
 
-        self.val_files = [torch.load(i) for i in val_file_names]
+        # self.val_files = [torch.load(i) for i in val_file_names]
 
-        logger.info('Validation samples: {}'.format(len(self.val_files)))
+        # logger.info('Validation samples: {}'.format(len(self.val_files)))
 
+        # val_set = list(range(len(self.val_files)))
+        self.val_files = Scannet(self.data_root, self.dataset, self.filename_suffix)
         val_set = list(range(len(self.val_files)))
         self.val_data_loader = DataLoader(val_set, batch_size=self.batch_size, collate_fn=self.valMerge, num_workers=self.val_workers,
                                           shuffle=False, drop_last=False, pin_memory=True)
 
 
+
     def testLoader(self):
 
-        self.test_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
+        # self.test_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
 
-        self.test_files = []
-        print("before for loop")
-        for i in self.test_file_names:
-        #   print (i)
-          self.test_files.append(torch.load(i))
-        logger.info('Testing samples ({}): {}'.format(self.test_split, len(self.test_files)))
-        print("after for loop")
+        # self.test_files = []
+        # print("before for loop")
+        # for counter,i in enumerate(self.test_file_names):
+        # #   print (i)
+        #   if counter >= 10:
+        #       break
+        #   self.test_files.append(torch.load(i))
+        # logger.info('Testing samples ({}): {}'.format(self.test_split, len(self.test_files)))
+        # print("after for loop")
 
+        self.test_files = Scannet(self.data_root, self.dataset, self.filename_suffix, triple=True)
         test_set = list(np.arange(len(self.test_files)))
+        self.test_file_names = self.test_files.filenames
         self.test_data_loader = DataLoader(test_set, batch_size=1, collate_fn=self.testMerge, num_workers=self.test_workers,
                                            shuffle=False, drop_last=False, pin_memory=True)
 

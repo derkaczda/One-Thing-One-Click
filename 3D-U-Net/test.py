@@ -132,6 +132,7 @@ def test(model, model_fn, data_name, epoch):
     dataset.testLoader()
 
     dataloader = dataset.test_data_loader
+    print("after dataloader")
     intersection_meter = AverageMeter()
     union_meter = AverageMeter()
     target_meter = AverageMeter()
@@ -143,16 +144,20 @@ def test(model, model_fn, data_name, epoch):
         progress_bar = tqdm(total=len(dataloader))
         for i, batch in enumerate(dataloader):
             N = batch['feats'].shape[0]
+            # print(batch)
+            # print(N)
             test_scene_name = dataset.test_file_names[int(batch['id'][0]/3)].split('/')[-1][:12]
             # print (test_scene_name)
 
 
             start1 = time.time()
+            # print(batch)
             preds = model_fn(batch, model, epoch)
             end1 = time.time() - start1
 
 
-            semantic_scores = preds['semantic'] 
+            semantic_scores = preds['semantic']
+            # print(semantic_scores)
 
             if i%3==0:
               semantic_acc=semantic_scores*0
@@ -162,6 +167,7 @@ def test(model, model_fn, data_name, epoch):
             if i%3==2:
               semantic_pred = semantic_acc.max(1)[1]  # (N) long, cuda
               semantic_pred=semantic_pred.detach().cpu().numpy()
+              print(semantic_pred)
               labels=batch['labels'].detach().cpu().numpy()  #[:int(N/3)]
 
 
@@ -173,6 +179,7 @@ def test(model, model_fn, data_name, epoch):
                 f1.write(str(semantic_pred[j])+'\n')
               f1.close()
 
+            torch.cuda.empty_cache()
             progress_bar.update(1)
 
 def non_max_suppression(ious, scores, threshold):
@@ -214,6 +221,7 @@ if __name__ == '__main__':
     #logger.info('cuda available: {}'.format(use_cuda))
     assert use_cuda
     model = model.cuda()
+    torch.backends.cudnn.benchmark = False
 
     # logger.info(model)
     #logger.info('#classifier parameters (model): {}'.format(sum([x.nelement() for x in model.parameters()])))

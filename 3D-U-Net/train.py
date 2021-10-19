@@ -80,6 +80,7 @@ def train_epoch(train_loader, model, model_fn, optimizer, epoch):
         t_h, t_m = divmod(t_m, 60)
         remain_time = '{:02d}:{:02d}:{:02d}'.format(int(t_h), int(t_m), int(t_s))
 
+        torch.cuda.empty_cache()
         sys.stdout.write(
             "epoch: {}/{} iter: {}/{} loss: {:.4f}({:.4f}) data_time: {:.2f}({:.2f}) iter_time: {:.2f}({:.2f}) remain_time: {remain_time}\n".format
             (epoch, cfg.epochs, i + 1, len(train_loader), am_dict['loss'].val, am_dict['loss'].avg,
@@ -177,8 +178,11 @@ if __name__ == '__main__':
             exit(0)'''
 
     ##### resume
-    start_epoch = utils.checkpoint_restore(model, cfg.exp_path, cfg.config.split('/')[-1][:-5], use_cuda)      # resume from the latest epoch, or specify the epoch to restore
-    #start_epoch=0
+    # start_epoch = utils.checkpoint_restore(model, cfg.exp_path, cfg.config.split('/')[-1][:-5], use_cuda)      # resume from the latest epoch, or specify the epoch to restore
+    start_epoch=0
+    print(f"++++ {start_epoch}")
+    torch.backends.cudnn.benchmark = False
+
     #f='pointgroup_run1_scannet-000000512.pth'
     logger.info('Restore from ' + cfg.exp_path)
     #checkpoint = torch.load(f)
@@ -190,8 +194,9 @@ if __name__ == '__main__':
     #model.load_state_dict(checkpoint,strict=False)
 
     ##### train and val
-    for epoch in range(start_epoch, cfg.epochs + 1):
+    for epoch in range(start_epoch, cfg.epochs):
         train_epoch(dataset.train_data_loader, model, model_fn, optimizer, epoch)
+        torch.cuda.empty_cache()
 
         #if utils.is_multiple(epoch, cfg.save_freq) or utils.is_power2(epoch):
         #    eval_epoch(dataset.val_data_loader, model, model_fn, epoch)
