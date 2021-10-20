@@ -60,7 +60,7 @@ def train_epoch(train_loader, model, model_fn, optimizer, epoch):
         for k, v in meter_dict.items():
             if k not in am_dict.keys():
                 am_dict[k] = utils.AverageMeter()
-            print(v[0])
+            # print(v[0])
             am_dict[k].update(v[0], v[1])
 
         ##### backward
