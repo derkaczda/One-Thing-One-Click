@@ -60,6 +60,7 @@ def train_epoch(train_loader, model, model_fn, optimizer, epoch):
         for k, v in meter_dict.items():
             if k not in am_dict.keys():
                 am_dict[k] = utils.AverageMeter()
+            print(v[0])
             am_dict[k].update(v[0], v[1])
 
         ##### backward
@@ -80,21 +81,22 @@ def train_epoch(train_loader, model, model_fn, optimizer, epoch):
         t_h, t_m = divmod(t_m, 60)
         remain_time = '{:02d}:{:02d}:{:02d}'.format(int(t_h), int(t_m), int(t_s))
 
+        del loss, visual_dict, meter_dict
         torch.cuda.empty_cache()
         sys.stdout.write(
             "epoch: {}/{} iter: {}/{} loss: {:.4f}({:.4f}) data_time: {:.2f}({:.2f}) iter_time: {:.2f}({:.2f}) remain_time: {remain_time}\n".format
             (epoch, cfg.epochs, i + 1, len(train_loader), am_dict['loss'].val, am_dict['loss'].avg,
              data_time.val, data_time.avg, iter_time.val, iter_time.avg, remain_time=remain_time))
-        if (i == len(train_loader) - 1): print()
+        # if (i == len(train_loader) - 1): print()
 
 
     logger.info("epoch: {}/{}, train loss: {:.4f}, time: {}s".format(epoch, cfg.epochs, am_dict['loss'].avg, time.time() - start_epoch))
     
     utils.checkpoint_save(model, cfg.exp_path, cfg.config.split('/')[-1][:-5], epoch, cfg.save_freq, use_cuda)
 
-    for k in am_dict.keys():
-        if k in visual_dict.keys():
-            writer.add_scalar(k+'_train', am_dict[k].avg, epoch)
+    # for k in am_dict.keys():
+    #     if k in visual_dict.keys():
+    #         writer.add_scalar(k+'_train', am_dict[k].avg, epoch)
 
 
 def eval_epoch(val_loader, model, model_fn, epoch):
@@ -119,11 +121,16 @@ def eval_epoch(val_loader, model, model_fn, epoch):
             sys.stdout.write("\riter: {}/{} loss: {:.4f}({:.4f})".format(i + 1, len(val_loader), am_dict['loss'].val, am_dict['loss'].avg))
             if (i == len(val_loader) - 1): print()
 
+            del loss, preds, visual_dict, meter_dict
+            torch.cuda.empty_cache()
+
         logger.info("epoch: {}/{}, val loss: {:.4f}, time: {}s".format(epoch, cfg.epochs, am_dict['loss'].avg, time.time() - start_epoch))
 
         for k in am_dict.keys():
             if k in visual_dict.keys():
                 writer.add_scalar(k + '_eval', am_dict[k].avg, epoch)
+
+        torch.cuda.empty_cache()
 
 
 if __name__ == '__main__':
@@ -180,11 +187,12 @@ if __name__ == '__main__':
     ##### resume
     # start_epoch = utils.checkpoint_restore(model, cfg.exp_path, cfg.config.split('/')[-1][:-5], use_cuda)      # resume from the latest epoch, or specify the epoch to restore
     start_epoch=0
-    print(f"++++ {start_epoch}")
-    torch.backends.cudnn.benchmark = False
+    # print(f"++++ {start_epoch}")
+    # torch.backends.cudnn.benchmark = False
+    # torch.backends.cudnn.enabled = False
 
     #f='pointgroup_run1_scannet-000000512.pth'
-    logger.info('Restore from ' + cfg.exp_path)
+    # logger.info('Restore from ' + cfg.exp_path)
     #checkpoint = torch.load(f)
     #for k, v in checkpoint.items():
     #    if 'module.' in k:
