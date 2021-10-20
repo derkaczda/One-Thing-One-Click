@@ -14,7 +14,7 @@ DATA:
 
   input_channel: 3
   scale: 50   # voxel_size = 1 / scale, scale 50(2cm)
-  batch_size: 4
+  batch_size: 1
   full_scale: [128, 512]
   max_npoint: 250000
   mode: 4 # 4=mean
@@ -28,7 +28,7 @@ STRUCTURE:
   use_coords: True
 
 TRAIN:
-  epochs: 512  #first iteration, 512; other iterations, train more epochs 
+  epochs: 5  #first iteration, 512; other iterations, train more epochs 
   train_workers: 1 # data loader workers
   optim: Adam # Adam or SGD
   lr: 0.01
@@ -62,7 +62,7 @@ GROUP:
 TEST:
   split: val
   test_epoch: 384
-  test_workers: 16
+  test_workers: 1
   test_seed: 567
 
   TEST_NMS_THRESH: 0.3
