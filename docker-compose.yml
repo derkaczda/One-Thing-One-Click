@@ -1,0 +1,35 @@
+version: "3"
+services:
+  otoc:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: derkaczda/one-thing-one-click
+    container_name: otoc
+    privileged: true
+    volumes:
+    - scannet_dataset:/data
+    - otoc_pretrain_model:/model
+    - otoc_result:/otoc/3D-U-Net/exp
+    - ./3D-U-Net/config/pointgroup_run1_scannet.yaml:/otoc/3D-U-Net/config/pointgroup_run1_scannet.yaml
+    command: >
+      bash -c "
+        cd /otoc/3D-U-Net;
+        python3 train.py --config config/pointgroup_run1_scannet.yaml
+      "
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: [gpu]
+
+volumes:
+  # create the volume beforehand with
+  #  docker volume create scannet_dataset -o type=none -o device=<LOCAL_PATH_TO_DATASET> -o o=bind
+  scannet_dataset:
+    external: true
+  otoc_pretrain_model:
+    external: true
+  otoc_result:
+    external: true
