@@ -29,7 +29,11 @@ volumes:
   #  docker volume create scannet_dataset -o type=none -o device=<LOCAL_PATH_TO_DATASET> -o o=bind
   scannet_dataset:
     external: true
+
+  # volume where the pretrained model is located
   otoc_pretrain_model:
     external: true
+
+  # a volume to store the training results
   otoc_result:
     external: true
