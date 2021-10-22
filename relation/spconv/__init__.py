@@ -1,11 +1,11 @@
 # Copyright 2019 Yan Yan
-#
+# 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
+# 
 #     http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
+# from spconv import utils
 from spconv.conv import SparseConv2d, SparseConv3d, SubMConv2d, SubMConv3d
 from spconv.conv import SparseConvTranspose2d, SparseConvTranspose3d
 from spconv.conv import SparseInverseConv2d, SparseInverseConv3d
@@ -48,7 +49,7 @@ class SparseConvTensor(object):
                 is very large.
         """
         self.features = features
-        self.indices = indices
+        self.indices = indices 
         if self.indices.dtype != torch.int32:
             self.indices.int()
         self.spatial_shape = spatial_shape
@@ -62,7 +63,7 @@ class SparseConvTensor(object):
 
     def find_indice_pair(self, key):
         if key is None:
-            return None
+            return None 
         if key in self.indice_dict:
             return self.indice_dict[key]
         return None

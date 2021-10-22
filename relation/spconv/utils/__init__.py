@@ -1,11 +1,11 @@
 # Copyright 2019 Yan Yan
-#
+# 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#
+# 
 #     http://www.apache.org/licenses/LICENSE-2.0
-#
+# 
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+# from spconv import spconv_utils
 from spconv.spconv_utils import (non_max_suppression, non_max_suppression_cpu,
                                  points_to_voxel_3d_np, rbbox_iou,
                                  rotate_non_max_suppression_cpu)
@@ -24,7 +25,7 @@ def points_to_voxel(points,
                      max_points=35,
                      max_voxels=20000):
     """convert 3d points(N, >=3) to voxels. This version calculate
-    everything in one loop. now it takes only 0.8ms(~6k voxels)
+    everything in one loop. now it takes only 0.8ms(~6k voxels) 
     with c++ and 3.2ghz cpu.
 
     Args:
@@ -89,7 +90,7 @@ class VoxelGenerator:
         res = points_to_voxel(
             points, self._voxel_size, self._point_cloud_range, self._coor_to_voxelidx,
             self._max_num_points, max_voxels or self._max_voxels)
-        return res
+        return res 
 
 
     @property
