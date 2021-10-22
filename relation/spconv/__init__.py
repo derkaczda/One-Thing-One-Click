@@ -16,7 +16,11 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from spconv.modules import SparseModule
+from spconv.conv import SparseConv2d, SparseConv3d, SubMConv2d, SubMConv3d
+from spconv.conv import SparseConvTranspose2d, SparseConvTranspose3d
+from spconv.conv import SparseInverseConv2d, SparseInverseConv3d
+from spconv.modules import SparseModule, SparseSequential
+from spconv.pool import SparseMaxPool2d, SparseMaxPool3d
 
 _LIB_PATH = str(Path(__file__).parent / "libspconv.so")
 torch.ops.load_library(_LIB_PATH)
