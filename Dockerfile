@@ -21,18 +21,16 @@ RUN git clone --recursive https://github.com/derkaczda/One-Thing-One-Click /otoc
 ENV CUDA_HOME /usr/local/cuda
 ENV CUDA_ROOT /usr/local/cuda
 # Install spconv
-RUN echo "test"
 ENV CUDA_ARCHITECTURES 8.6
-WORKDIR /otoc/3D-U-Net/lib/spconv
+WORKDIR /otoc/lib/spconv
 RUN python3 setup.py bdist_wheel
 RUN pip3 install dist/*.whl
-RUN ln -s /otoc/3D-U-Net/lib/spconv/"$(find build -type d -name "lib.*" -print)"/spconv/libspconv.so /otoc/3D-U-Net/spconv/libspconv.so
+RUN ln -s /otoc/lib/spconv/"$(find build -type d -name "lib.*" -print)"/spconv/libspconv.so /otoc/3D-U-Net/spconv/libspconv.so
 
 # Compile pointgroup_ops
 # need to change the architecture to match
 # gpu
-
-WORKDIR /otoc/3D-U-Net/lib/pointgroup_ops
+WORKDIR /otoc/lib/pointgroup_ops
 RUN python3 setup.py develop
 
 ENV CUDA_LAUNCH_BLOCKING 1
