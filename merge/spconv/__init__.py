@@ -16,7 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from spconv import utils
+# from spconv import utils
 from spconv.conv import SparseConv2d, SparseConv3d, SubMConv2d, SubMConv3d
 from spconv.conv import SparseConvTranspose2d, SparseConvTranspose3d
 from spconv.conv import SparseInverseConv2d, SparseInverseConv3d
