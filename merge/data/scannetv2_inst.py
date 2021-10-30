@@ -4,6 +4,7 @@ Written by Li Jiang
 '''
 
 import os, sys, glob, math, numpy as np
+from merge.data.dataset import Scannet
 import scipy.ndimage
 import scipy.interpolate
 import torch,json
@@ -18,6 +19,7 @@ from lib.pointgroup_ops.functions import pointgroup_ops
 class Dataset:
     def __init__(self, test=False):
         self.data_root = cfg.data_root
+        self.result_root = cfg.result_root
         self.dataset = cfg.dataset
         self.filename_suffix = cfg.filename_suffix
 
@@ -37,45 +39,53 @@ class Dataset:
 
 
     def trainLoader(self):
-        #do not use this 
-        train_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
+        #do not use this
+        # train_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
 
-        self.train_files = []
-        for i in train_file_names:
-          print (i)
-          self.train_files.append(torch.load(i))
+        # self.train_files = []
+        # for i in train_file_names:
+        #   # print (i)
+        #   self.train_files.append(torch.load(i))
 
 
-        logger.info('Training samples: {}'.format(len(self.train_files)))
+        # logger.info('Training samples: {}'.format(len(self.train_files)))
 
+        # train_set = list(range(len(self.train_files)))
+        # self.train_data_loader = DataLoader(train_set, batch_size=self.batch_size, collate_fn=self.trainMerge, num_workers=self.train_workers,
+        #                                     shuffle=True, sampler=None, drop_last=True, pin_memory=True)
+        self.train_files = Scannet(self.data_root, self.dataset, self.filename_suffix)
         train_set = list(range(len(self.train_files)))
         self.train_data_loader = DataLoader(train_set, batch_size=self.batch_size, collate_fn=self.trainMerge, num_workers=self.train_workers,
                                             shuffle=True, sampler=None, drop_last=True, pin_memory=True)
 
 
     def valLoader(self):
-        val_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, 'val_fully', '*' + self.filename_suffix)))
-        self.val_file_names=val_file_names
-        self.val_files = [torch.load(i) for i in val_file_names]
+        # val_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, 'val_fully', '*' + self.filename_suffix)))
+        # self.val_file_names=val_file_names
+        # self.val_files = [torch.load(i) for i in val_file_names]
 
-        logger.info('Validation samples: {}'.format(len(self.val_files)))
+        # logger.info('Validation samples: {}'.format(len(self.val_files)))
 
+        # val_set = list(range(len(self.val_files)))
+        # self.val_data_loader = DataLoader(val_set, batch_size=self.batch_size, collate_fn=self.valMerge, num_workers=self.val_workers,
+        #                                   shuffle=False, drop_last=False, pin_memory=True)
+
+        self.val_files = Scannet(self.data_root, self.dataset, self.filename_suffix)
         val_set = list(range(len(self.val_files)))
         self.val_data_loader = DataLoader(val_set, batch_size=self.batch_size, collate_fn=self.valMerge, num_workers=self.val_workers,
                                           shuffle=False, drop_last=False, pin_memory=True)
 
-
     def testLoader(self):
         self.test_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
-        
+
         self.test_file_names.sort()
         self.test_file_names=self.test_file_names[0:]
-        
+
         self.test_files=[]
         cnt=0
         for i in self.test_file_names:
           print (i)
-          cnt+=1        
+          cnt+=1
           data=torch.load(i)
           name=i.split('/')[-1]
           '''fn3 = self.data_root+'/scans/'+name[:12]+'/'+name[:12]+'_vh_clean_2.0.010000.segs.json'
@@ -84,24 +94,24 @@ class Dataset:
             d = json.load(jsondata)
             seg = d['segIndices']'''
           seg=data[-1]
-            
-          
 
-          
+
+
+
           full_group=np.unique(seg)
-          
+
           full_group=full_group.tolist()
-          
-          
+
+
           full_group2point=seg
           data=list(data)
           data.append(full_group)
           data.append(full_group2point)
           data.append(i)
           data=tuple(data)
-          
-          
-          
+
+
+
           self.test_files.append(data)
         logger.info('Testing samples ({}): {}'.format(self.test_split, len(self.test_files)))
 
@@ -223,19 +233,19 @@ class Dataset:
         instance_pointnum = []  # (total_nInst), int
 
         batch_offsets = [0]
-        names=[]        
+        names=[]
 
         total_inst_num = 0
         for i, idx in enumerate(id):
             xyz_origin, rgb, label, group, point2seg, group_full, point2seg_full, name = self.train_files[idx]
-            names.append(name)            
+            names.append(name)
 
 
 
-            
+
             xyz_origin=xyz_origin.astype('float32')
             rgb=rgb.astype('float32')
-            
+
 
 
             ### jitter / flip x / rotation
@@ -267,8 +277,8 @@ class Dataset:
               group_to_point[point2seg[j]].append(j)
             for j in range(20):
               group[j]=list(set(group[j]) & set(group_to_point.keys()))
-              
-              
+
+
             point2seg_ori_full=np.asarray(point2seg_full)
             point2seg_full=point2seg_ori_full[valid_idxs]
             point2seg_full=point2seg_full.tolist()
@@ -277,10 +287,10 @@ class Dataset:
               if point2seg_full[j] not in group_to_point_full:
                 group_to_point_full[point2seg_full[j]] = []
               group_to_point_full[point2seg_full[j]].append(j)
-            
-            group_full=list(set(group_full) & set(group_to_point_full.keys()))       
-                  
-            
+
+            group_full=list(set(group_full) & set(group_to_point_full.keys()))
+
+
 
             #print ('keys',group_to_point.keys())
             #print ('groups',group)
@@ -339,7 +349,7 @@ class Dataset:
             instance_pointnum.extend(inst_pointnum)'''
 
         ### merge all the scenes in the batchd
-        
+
 
         batch_offsets = torch.tensor(batch_offsets, dtype=torch.int)  # int (B+1)
 
@@ -460,11 +470,11 @@ class Dataset:
 
 
 
-                unary=torch.from_numpy(np.load(self.data_root+'/unary_pred/'+name.split('/')[-1][:12]+'.npy'))
-                unary_feat=torch.from_numpy(np.load(self.data_root+'/unary_feat/'+name.split('/')[-1][:12]+'.npy'))
-                pairwise=torch.from_numpy(np.load(self.data_root+'/rel_feat/'+name.split('/')[-1][:12]+'.npy'))
-                prod=torch.from_numpy(np.load(self.data_root+'/rel_pred/'+name.split('/')[-1][:12]+'.npy'))
-                
+                unary=torch.from_numpy(np.load(self.result_root+'/unary_pred/'+name.split('/')[-1][:12]+'.npy'))
+                unary_feat=torch.from_numpy(np.load(self.result_root+'/unary_feat/'+name.split('/')[-1][:12]+'.npy'))
+                pairwise=torch.from_numpy(np.load(self.result_root+'/rel_feat/'+name.split('/')[-1][:12]+'.npy'))
+                prod=torch.from_numpy(np.load(self.result_root+'/rel_pred/'+name.split('/')[-1][:12]+'.npy'))
+
 
 
             xyz_origin=xyz_origin.astype('float32')
@@ -477,8 +487,8 @@ class Dataset:
 
             ### offset
             xyz -= xyz.min(0)
-            
-            
+
+
             point2seg_ori=np.asarray(point2seg)
             point2seg=point2seg_ori #[valid_idxs]
 
@@ -494,8 +504,8 @@ class Dataset:
 
             for j in range(20):
               group[j]=list(set(group[j]) & set(group_to_point.keys()))
-              
-              
+
+
             point2seg_ori_full=np.asarray(point2seg_full)
             point2seg_full=point2seg_ori_full  #[valid_idxs]
             point2seg_full=point2seg_full.tolist()
@@ -504,9 +514,9 @@ class Dataset:
               if point2seg_full[j] not in group_to_point_full:
                 group_to_point_full[point2seg_full[j]] = []
               group_to_point_full[point2seg_full[j]].append(j)
-            
-            group_full=list(set(group_full) & set(group_to_point_full.keys()))       
-              
+
+            group_full=list(set(group_full) & set(group_to_point_full.keys()))
+
             ### merge the scene to the batch
             batch_offsets.append(batch_offsets[-1] + xyz.shape[0])
 
@@ -519,16 +529,16 @@ class Dataset:
             group_to_points.append(group_to_point)
             group_to_point_fulls.append(group_to_point_full)
         ### merge all the scenes in the batch
-        
 
-        
+
+
         batch_offsets = torch.tensor(batch_offsets, dtype=torch.int)  # int (B+1)
 
         locs = torch.cat(locs, 0)                                         # long (N, 1 + 3), the batch item idx is put in locs[:, 0]
         locs_float = torch.cat(locs_float, 0).to(torch.float32)           # float (N, 3)
-        
+
         feats = torch.cat(feats, 0)                                       # float (N, C)
-        labels = torch.cat(labels, 0).long()   
+        labels = torch.cat(labels, 0).long()
         spatial_shape = np.clip((locs.max(0)[0][1:] + 1).numpy(), self.full_scale[0], None)  # long (3)
 
         ### voxelize

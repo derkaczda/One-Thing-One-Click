@@ -40,14 +40,17 @@ def init():
 
 def test(model, model_fn, data_name, epoch):
     logger.info('>>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>')
-    try:
-      os.mkdir('result')
-    except:
-      pass
-    try:
-      os.mkdir('result/pred')
-    except:
-      pass
+    # try:
+    #   os.mkdir('result')
+    # except:
+    #   pass
+    # try:
+    #   os.mkdir('result/pred')
+    # except:
+    #   pass
+
+    result_path = os.path.join(cfg.result_root, "merge_pred")
+    os.makedirs(result_path, exist_ok=True)
 
     from data.scannetv2_inst import Dataset
     dataset = Dataset(test=True)
@@ -70,27 +73,27 @@ def test(model, model_fn, data_name, epoch):
             start1 = time.time()
             preds = model_fn(batch, model, epoch)
             end1 = time.time() - start1
-            
-            semantic_pred = preds['semantic_crf']  
-            feat = preds['feat'].detach().cpu().numpy()   
 
-            semantic_pred=semantic_pred.detach().cpu().numpy()     
+            semantic_pred = preds['semantic_crf']
+            feat = preds['feat'].detach().cpu().numpy()
+
+            semantic_pred=semantic_pred.detach().cpu().numpy()
 
             labels=batch['labels'].detach().cpu().numpy()
-            
-            
-            f1=open('result/pred/'+test_scene_name+'.txt','w')
+
+            file_path = os.path.join(result_path, f"{test_scene_name}.txt")
+            f1=open(file_path,'w')
             for j in range(labels.shape[0]):
               f1.write(str(int(semantic_pred[j]))+'\n')
             f1.close()
 
 
-            '''intersection, union, target = intersectionAndUnion(semantic_pred, labels, 20)
+            intersection, union, target = intersectionAndUnion(semantic_pred, labels, 20)
             intersection_meter.update(intersection)
             union_meter.update(union)
             target_meter.update(target)
             accuracy = sum(intersection_meter.val) / (sum(target_meter.val) + 1e-10)
-            logger.info('Evaluating {0}/{1} on image {2}, accuracy {3:.4f}.'.format(i + 1, len(dataset.test_file_names), test_scene_name, accuracy))'''
+            logger.info('Evaluating {0}/{1} on image {2}, accuracy {3:.4f}.'.format(i + 1, len(dataset.test_file_names), test_scene_name, accuracy))
 
 
 def non_max_suppression(ious, scores, threshold):
@@ -138,9 +141,9 @@ if __name__ == '__main__':
     model_fn = model_fn_decorator(test=True)
 
     ##### load model
-    
-    print (model)
-    
+
+    # print (model)
+
     #utils.checkpoint_restore(model, cfg.exp_path, cfg.config.split('/')[-1][:-5], use_cuda, cfg.test_epoch, dist=False, f=cfg.pretrain)      # resume from the latest epoch, or specify the epoch to restore
 
     ##### evaluate

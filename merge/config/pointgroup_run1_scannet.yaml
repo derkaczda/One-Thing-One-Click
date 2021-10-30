@@ -5,9 +5,10 @@ GENERAL:
   dataset_dir: data/scannetv2_inst.py
 
 DATA:
-  data_root: /home/lzz/sdc1/pg/ 
-  dataset: train0.9 
+  data_root: /data
+  dataset: train0.9
   filename_suffix: _inst_nostuff.pth
+  result_root: /result
 
   classes: 20
   ignore_label: -100
