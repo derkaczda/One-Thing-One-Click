@@ -5,16 +5,17 @@ GENERAL:
   dataset_dir: data/scannetv2_inst.py
 
 DATA:
-  data_root: /home/lzz/sdc1/pg/ #data root
-  dataset: train_weakly #train 1st iter, train_weakly; train other iters, train0.9 
+  data_root: /data #data root
+  dataset: train_weakly #train 1st iter, train_weakly; train other iters, train0.9
   filename_suffix: _inst_nostuff.pth
+  result_root: /result
 
   classes: 20
   ignore_label: -100
 
   input_channel: 3
   scale: 50   # voxel_size = 1 / scale, scale 50(2cm)
-  batch_size: 4
+  batch_size: 1
   full_scale: [128, 512]
   max_npoint: 250000
   mode: 4 # 4=mean
@@ -28,11 +29,11 @@ STRUCTURE:
   use_coords: True
 
 TRAIN:
-  epochs: 1024 #first iteration, 1024; other iterations, train more epochs 
-  train_workers: 16 # data loader workers
+  epochs: 2 #first iteration, 1024; other iterations, train more epochs
+  train_workers: 4 # data loader workers
   optim: Adam # Adam or SGD
   lr: 0.01
-  step_epoch: 768 #first iteration, 768; other iterations, train more epochs 
+  step_epoch: 768 #first iteration, 768; other iterations, train more epochs
   multiplier: 0.5
   momentum: 0.9
   weight_decay: 0.0001
@@ -62,7 +63,7 @@ GROUP:
 TEST:
   split: val
   test_epoch: 384
-  test_workers: 16
+  test_workers: 4
   test_seed: 567
 
   TEST_NMS_THRESH: 0.3

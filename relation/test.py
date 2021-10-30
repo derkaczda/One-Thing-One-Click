@@ -76,6 +76,7 @@ cfg.task = 'test'
 from util.log import logger
 import util.utils as utils
 import util.eval as eval
+from tqdm import tqdm
 from util_iou import *
 
 fx_rgb = 5.1885790117450188e+02
@@ -107,19 +108,12 @@ def init():
 
 
 def test(model, model_fn, data_name, epoch):
-
-    try:
-      os.mkdir(cfg.data_root+'/rel_pred')
-    except:
-      pass
-    try:
-      os.mkdir(cfg.data_root+'/rel_feat')
-    except:
-      pass
-    try:
-      os.mkdir('result/pred')
-    except:
-      pass
+    rel_pred_path = os.path.join(cfg.result_root, "rel_pred")
+    rel_feat_path = os.path.join(cfg.result_root, "rel_feat")
+    rel_result_pred_path = os.path.join(cfg.result_root, "rel_pred_pred")
+    os.makedirs(rel_pred_path, exist_ok=True)
+    os.makedirs(rel_feat_path, exist_ok=True)
+    os.makedirs(rel_result_pred_path, exist_ok=True)
 
     logger.info('>>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>')
     from data.scannetv2_inst import Dataset
@@ -135,18 +129,19 @@ def test(model, model_fn, data_name, epoch):
         start = time.time()
 
         matches = {}
+        progress_bar = tqdm(total=len(dataloader))
         for i, batch in enumerate(dataloader):
             N = batch['feats'].shape[0]
-            print (len(dataset.test_file_names), int(batch['id'][0]))
+            # print (len(dataset.test_file_names), int(batch['id'][0]))
             test_scene_name = dataset.test_file_names[int(batch['id'][0]/3)].split('/')[-1][:12]
-            print (test_scene_name)
+            # print (test_scene_name)
 
             start1 = time.time()
             preds = model_fn(batch, model, epoch)
             end1 = time.time() - start1
 
 
-            semantic_scores = preds['products'] 
+            semantic_scores = preds['products']
 
             if i%3==0:
               features_acc=preds['feat']*0
@@ -159,22 +154,26 @@ def test(model, model_fn, data_name, epoch):
             if i%3==2:
               semantic_feat = features_acc/3.0
               semantic_pred = semantic_acc.max(1)[1]  # (N, nClass=20) float32, cuda
-              feat = semantic_feat #.detach().cpu().numpy()   
+              feat = semantic_feat #.detach().cpu().numpy()
               prod=semantic_acc #preds['products']
 
+              prod_path = os.path.join(rel_pred_path, f"{test_scene_name}.npy")
+              feat_path = os.path.join(rel_feat_path, f"{test_scene_name}.npy")
+              semantic_path = os.path.join(rel_result_pred_path, f"{test_scene_name}.txt")
+
+              np.save(prod_path,prod)
+              np.save(feat_path,feat)
 
 
-              np.save(cfg.data_root+'/rel_pred/'+test_scene_name+'.npy',prod)
-              np.save(cfg.data_root+'/rel_feat/'+test_scene_name+'.npy',feat)
-
-
-              semantic_pred=semantic_pred.detach().cpu().numpy()   
+              semantic_pred=semantic_pred.detach().cpu().numpy()
               labels=batch['labels'].detach().cpu().numpy()
-              f1=open('result/pred/'+test_scene_name+'.txt','w')
+              f1=open(semantic_path,'w')
 
               for j in range(labels.shape[0]):
                 f1.write(str(semantic_pred[j])+'\n')
               f1.close()
+            torch.cuda.empty_cache()
+            progress_bar.update(1)
 
 
 def non_max_suppression(ious, scores, threshold):
