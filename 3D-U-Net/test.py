@@ -109,30 +109,18 @@ def init():
 
 
 def test(model, model_fn, data_name, epoch):
-    #logger.info('>>>>>>>>>>>>>>>> Start Evaluation >>>>>>>>>>>>>>>>')
-    try:
-      os.mkdir(cfg.data_root+'/unary_pred')
-    except:
-      pass
-    try:
-      os.mkdir(cfg.data_root+'/unary_feat')
-    except:
-      pass
-    try:
-      os.mkdir('result')
-    except:
-      pass
-    try:
-      os.mkdir('result/pred')
-    except:
-      pass
+    unary_pred_path = os.path.join(cfg.result_root, "unary_pred")
+    unary_feat_path = os.path.join(cfg.result_root, "unary_feat")
+    unary_result_pred_path = os.path.join(cfg.result_root, "pred")
+    os.makedirs(unary_pred_path, exist_ok=True)
+    os.makedirs(unary_feat_path, exist_ok=True)
+    os.makedirs(unary_result_pred_path, exist_ok=True)
 
     from data.scannetv2_inst import Dataset
     dataset = Dataset(test=True)
     dataset.testLoader()
 
     dataloader = dataset.test_data_loader
-    print("after dataloader")
     intersection_meter = AverageMeter()
     union_meter = AverageMeter()
     target_meter = AverageMeter()
@@ -167,14 +155,16 @@ def test(model, model_fn, data_name, epoch):
             if i%3==2:
               semantic_pred = semantic_acc.max(1)[1]  # (N) long, cuda
               semantic_pred=semantic_pred.detach().cpu().numpy()
-              print(semantic_pred)
+              # print(semantic_pred)
               labels=batch['labels'].detach().cpu().numpy()  #[:int(N/3)]
 
+              scores_path = os.path.join(unary_pred_path, f"{test_scene_name}.npy")
+              feat_path = os.path.join(unary_feat_path, f"{test_scene_name}.npy")
+              semantic_path = os.path.join(unary_result_pred_path, f"{test_scene_name}.txt")
+              np.save(scores_path,semantic_scores.detach().cpu().numpy())
+              np.save(feat_path,preds['feats'].detach().cpu().numpy())
 
-              np.save(cfg.data_root+'/unary_pred/'+test_scene_name+'.npy',semantic_scores.detach().cpu().numpy())
-              np.save(cfg.data_root+'/unary_feat/'+test_scene_name+'.npy',preds['feats'].detach().cpu().numpy())
-
-              f1=open('result/pred/'+test_scene_name+'.txt','w')
+              f1=open(semantic_path,'w')
               for j in range(labels.shape[0]):
                 f1.write(str(semantic_pred[j])+'\n')
               f1.close()

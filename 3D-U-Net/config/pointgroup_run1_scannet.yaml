@@ -6,8 +6,9 @@ GENERAL:
 
 DATA:
   data_root: /data #data root
-  dataset: train_weakly #train 1st iter, train_weakly; train other iters, train0.9 
+  dataset: train_weakly #train 1st iter, train_weakly; train other iters, train0.9
   filename_suffix: _inst_nostuff.pth
+  result_root: /result
 
   classes: 20
   ignore_label: -100
@@ -28,11 +29,11 @@ STRUCTURE:
   use_coords: True
 
 TRAIN:
-  epochs: 5  #first iteration, 512; other iterations, train more epochs 
+  epochs: 20  #first iteration, 512; other iterations, train more epochs
   train_workers: 1 # data loader workers
   optim: Adam # Adam or SGD
   lr: 0.01
-  step_epoch: 384 #first iteration, 384; other iterations, other epochs 
+  step_epoch: 384 #first iteration, 384; other iterations, other epochs
   multiplier: 0.5
   momentum: 0.9
   weight_decay: 0.01
