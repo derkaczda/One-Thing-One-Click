@@ -16,7 +16,5 @@ docker run -it --rm --privileged --gpus all -v /dev:/dev \
     -v otoc_result:/result \
     -v /home/daniel/projects/idp/One-Thing-One-Click/3D-U-Net/config/pointgroup_run1_scannet.yaml:/otoc/3D-U-Net/config/pointgroup_run1_scannet.yaml \
     -v /home/daniel/projects/idp/One-Thing-One-Click/relation/config/pointgroup_run1_scannet.yaml:/otoc/relation/config/pointgroup_run1_scannet.yaml \
-    -v $CODE_ROOT/3D-U-Net/util/utils.py:/otoc/3D-U-Net/util/utils.py \
-    -v $CODE_ROOT/3D-U-Net/test.py:/otoc/3D-U-Net/test.py \
-    -v $CODE_ROOT/relation/test.py:/otoc/relation/test.py \
-    $CONTAINER_NAME bash -c "$RELATION_TEST"
+    -v $CODE_ROOT/merge/config/pointgroup_run1_scannet.yaml:/otoc/merge/config/pointgroup_run1_scannet.yaml \
+    $CONTAINER_NAME bash -c "$MERGE_TEST"
