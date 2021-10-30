@@ -1,22 +1,28 @@
 version: "3"
 services:
   otoc:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    # image: derkaczda/one-thing-one-click
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: derkaczda/one-thing-one-click
     container_name: otoc
     privileged: true
+    shm_size: 5gb
     volumes:
     - scannet_dataset:/data
     - otoc_pretrain_model:/model
     - otoc_result:/otoc/3D-U-Net/exp
     - ./3D-U-Net/config/pointgroup_run1_scannet.yaml:/otoc/3D-U-Net/config/pointgroup_run1_scannet.yaml
+    - ./relation/config/pointgroup_run1_scannet.yaml:/otoc/relation/config/pointgroup_run1_scannet.yaml
     command: >
       bash -c "
         cd /otoc/3D-U-Net;
         python3 train.py --config config/pointgroup_run1_scannet.yaml
       "
+      # bash -c "
+      #   cd /otoc/relation;
+      #   python3 train.py --config config/pointgroup_run1_scannet.yaml
+      # "
     deploy:
       resources:
         reservations:
