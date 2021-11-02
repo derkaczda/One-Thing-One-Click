@@ -1,8 +1,6 @@
-from data.scannetv2_inst import Dataset
+
 import numpy as np
-from data.dataset import Scannet
-from util.config import cfg
-cfg.task = 'test'
+
 import matplotlib.pyplot as plt
 from plyfile import PlyData
 from plyfile import PlyElement
@@ -61,12 +59,32 @@ def discrete_cmap(N, base_cmap=None):
     cmap_name = base.name + str(N)
     return base.from_list(cmap_name, color_list, N)
 
-if __name__ == '__main__':
-    import argparse
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument("--dest", type=str)
-    # args = parser.parse_args()
+def save_as_ply(pointcloud, colors, file_path):
+    num_vertices = pointcloud.shape[0]
+    vertices = np.zeros(
+        (num_vertices),
+        dtype=[
+            ("x", np.float32),
+            ("y", np.float32),
+            ("z", np.float32),
+            ("red", np.ubyte),
+            ("green", np.ubyte),
+            ("blue", np.ubyte),
+        ],
+    )
+    for index in range(num_vertices):
+        point = pointcloud[index,:]
+        color = colors[index]
+        vertices[index] = (*point, *color)
+    el = PlyElement.describe(vertices, "vertex")
+    PlyData([el], text=True).write(file_path)
 
+if __name__ == '__main__':
+    import os.path as osp
+    from util.config import cfg
+    cfg.task = 'test'
+    from relation.data.scannetv2_inst import Dataset
+    from data.dataset import Scannet
     dataset = Dataset(test=False)
     dataset.trainLoader()
     dataloader = dataset.train_data_loader
@@ -75,85 +93,13 @@ if __name__ == '__main__':
     model_name = exp_name.split('_')[0]
     data_name = exp_name.split('_')[-1]
     cfg.dataset='train_weakly'
-
-    if model_name == 'pointgroup':
-        from model.pointgroup.pointgroup import PointGroup as Network
-        from model.pointgroup.pointgroup import model_fn_decorator
-    else:
-        print("Error: no model version " + model_name)
-        exit(0)
-    model = Network(cfg)
-
-    # batch = next(iter(dataloader))
-    # xyz = batch['locs_float'].numpy()
-    # # print(batch['feats'])
-    # rgb = batch['feats'].numpy()
-    # rgb = np.clip(np.abs(rgb), a_min=0.0, a_max=1.0)
-    # labels = batch['labels'].numpy()
-    # unique_label = np.unique(labels)
-    # label_to_cmap = {}
-    # for i, l in enumerate(unique_label):
-    #     label_to_cmap[l] = i
-
-    # colored_label = [label_to_cmap[l] for l in labels]
-    # num_vertices = xyz.shape[0]
-    # vertices = np.zeros(
-    #     (num_vertices),
-    #     dtype=[
-    #         ("x", np.float32),
-    #         ("y", np.float32),
-    #         ("z", np.float32),
-    #         ("red", np.ubyte),
-    #         ("green", np.ubyte),
-    #         ("blue", np.ubyte),
-    #     ],
-    # )
-    # vertices2 = np.zeros(
-    #     (num_vertices),
-    #     dtype=[
-    #         ("x", np.float32),
-    #         ("y", np.float32),
-    #         ("z", np.float32),
-    #         ("red", np.ubyte),
-    #         ("green", np.ubyte),
-    #         ("blue", np.ubyte),
-    #     ],
-    # )
-    # for index in range(xyz.shape[0]):
-    #     point = xyz[index, :]
-    #     rgb_color = rgb[index]*256 #colors[colored_label[index]]
-    #     color = colors[colored_label[index]]
-    #     vertices[index] = (*point, *color)
-    #     vertices2[index] = (*point, *rgb_color)
-    # el = PlyElement.describe(vertices, "vertex")
-    # PlyData([el], text=True).write(cfg.dest+"/label.ply")
-    # el2 = PlyElement.describe(vertices2, "vertex")
-    # PlyData([el2], text=True).write(cfg.dest+"/rgb.ply")
-
     train_files = Scannet(cfg.data_root, cfg.dataset, cfg.filename_suffix)
     for idx in range(20):
         xyz, rgb, label, _, _ = train_files[idx]
-        num_vertices = xyz.shape[0]
-        vertices = np.zeros(
-            (num_vertices),
-            dtype=[
-                ("x", np.float32),
-                ("y", np.float32),
-                ("z", np.float32),
-                ("red", np.ubyte),
-                ("green", np.ubyte),
-                ("blue", np.ubyte),
-            ],
-        )
+
         unique_label = np.unique(label)
         label_to_cmap = {}
         for i, l in enumerate(unique_label):
             label_to_cmap[l] = i
-        colored_label = [label_to_cmap[l] for l in label]
-        for index in range(xyz.shape[0]):
-            point = xyz[index, :]
-            # rgb_color = rgb[index]*256 #colors[colored_label[index]]
-            color = colors[colored_label[index]]
-            vertices[index] = (*point, *color)
-        el = PlyElement.describe(vertices, "vertex")
-        PlyData([el], text=True).write(cfg.dest+f"/base_data_{idx}.ply")
+        colored_label = [colors[label_to_cmap[l]] for l in label]
+        save_as_ply(xyz, colored_label, osp.join("/result", f"base_data_{idx}.ply"))
