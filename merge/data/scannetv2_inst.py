@@ -4,7 +4,7 @@ Written by Li Jiang
 '''
 
 import os, sys, glob, math, numpy as np
-from merge.data.dataset import Scannet
+from data.dataset import Scannet
 import scipy.ndimage
 import scipy.interpolate
 import torch,json

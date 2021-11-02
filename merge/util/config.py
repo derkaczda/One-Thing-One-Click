@@ -10,6 +10,7 @@ import os
 def get_parser():
     parser = argparse.ArgumentParser(description='Point Cloud Segmentation')
     parser.add_argument('--config', type=str, default='config/pointgroup_default_scannet.yaml', help='path to config file')
+    parser.add_argument("--dest", type=str)
 
     ### pretrain
     parser.add_argument('--pretrain', type=str, default='', help='path to pretrain model')

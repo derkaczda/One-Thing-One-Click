@@ -70,7 +70,7 @@ def visualize_pts_rgb(fig, pts, rgb, scale=0.02):
 
 
 def get_coords_color(opt):
-    input_file = os.path.join(opt.data_root, opt.room_split, opt.room_name + '_inst_nostuff.pth')
+    input_file = os.path.join(opt.data_root, opt.room_split, opt.room_name + '_vh_clean_2.ply_inst_nostuff.pth')
     assert os.path.isfile(input_file), 'File not exist - {}.'.format(input_file)
     if opt.room_split == 'test':
         xyz, rgb = torch.load(input_file)

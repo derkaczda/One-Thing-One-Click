@@ -14,7 +14,7 @@ sys.path.append('../')
 from util.config import cfg
 from util.log import logger
 from lib.pointgroup_ops.functions import pointgroup_ops
-from .dataset import Scannet
+from data.dataset import Scannet
 
 class Dataset:
     def __init__(self, test=False):
@@ -38,17 +38,6 @@ class Dataset:
 
 
     def trainLoader(self):
-        # train_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
-
-        # self.train_files = []
-        # for i in train_file_names:
-        #   print (i)
-        #   self.train_files.append(torch.load(i))
-
-
-        # logger.info('Training samples: {}'.format(len(self.train_files)))
-
-        # train_set = list(range(len(self.train_files)))
         self.train_files = Scannet(self.data_root, self.dataset, self.filename_suffix)
         train_set = list(range(len(self.train_files)))
         self.train_data_loader = DataLoader(train_set, batch_size=self.batch_size, collate_fn=self.trainMerge, num_workers=self.train_workers,
@@ -56,13 +45,6 @@ class Dataset:
 
 
     def valLoader(self):
-        # val_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
-
-        # self.val_files = [torch.load(i) for i in val_file_names]
-
-        # logger.info('Validation samples: {}'.format(len(self.val_files)))
-
-        # val_set = list(range(len(self.val_files)))
         self.val_files = Scannet(self.data_root, self.dataset, self.filename_suffix)
         val_set = list(range(len(self.val_files)))
         self.val_data_loader = DataLoader(val_set, batch_size=self.batch_size, collate_fn=self.valMerge, num_workers=self.val_workers,
@@ -71,19 +53,6 @@ class Dataset:
 
 
     def testLoader(self):
-
-        # self.test_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
-
-        # self.test_files = []
-        # print("before for loop")
-        # for counter,i in enumerate(self.test_file_names):
-        # #   print (i)
-        #   if counter >= 10:
-        #       break
-        #   self.test_files.append(torch.load(i))
-        # logger.info('Testing samples ({}): {}'.format(self.test_split, len(self.test_files)))
-        # print("after for loop")
-
         self.test_files = Scannet(self.data_root, self.dataset, self.filename_suffix, triple=True)
         test_set = list(np.arange(len(self.test_files)))
         self.test_file_names = self.test_files.filenames
@@ -197,10 +166,10 @@ class Dataset:
         total_inst_num = 0
         for i, idx in enumerate(id):
             xyz_origin, rgb, label, gorups, point2group= self.train_files[idx]
-            
+
             xyz_origin=xyz_origin.astype('float32')
             rgb=rgb.astype('float32')
-            
+
 
 
             ### jitter / flip x / rotation
@@ -247,7 +216,7 @@ class Dataset:
             instance_pointnum.extend(inst_pointnum)'''
 
         ### merge all the scenes in the batchd
-        
+
 
         batch_offsets = torch.tensor(batch_offsets, dtype=torch.int)  # int (B+1)
 
@@ -264,7 +233,7 @@ class Dataset:
 
         ### voxelize
         voxel_locs, p2v_map, v2p_map = pointgroup_ops.voxelization_idx(locs, self.batch_size, self.mode)
-        
+
 
 
         return {'locs': locs, 'voxel_locs': voxel_locs, 'p2v_map': p2v_map, 'v2p_map': v2p_map,
@@ -406,5 +375,5 @@ class Dataset:
         voxel_locs, p2v_map, v2p_map = pointgroup_ops.voxelization_idx(locs, self.batch_size, self.mode)
 
         return {'locs': locs, 'voxel_locs': voxel_locs, 'p2v_map': p2v_map, 'v2p_map': v2p_map,
-                'locs_float': locs_float, 'feats': feats, 'labels': labels, 
+                'locs_float': locs_float, 'feats': feats, 'labels': labels,
                 'id': id, 'offsets': batch_offsets, 'spatial_shape': spatial_shape}
