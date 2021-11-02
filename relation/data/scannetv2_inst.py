@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 import random
 sys.path.append('../')
 
-from util.config import cfg
+# from util.config import cfg
 from lib.pointgroup_ops.functions import pointgroup_ops
 from data.dataset import Scannet
 
