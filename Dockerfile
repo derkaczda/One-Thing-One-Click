@@ -15,6 +15,9 @@ RUN apt update && apt install -y \
     libboost-all-dev=1.71.0.0ubuntu2 \
     libjpeg-dev=8c-2ubuntu8 \
     zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.2 \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install \
@@ -25,7 +28,8 @@ RUN pip3 install \
     cmake==3.21.3 \
     pillow==8.4.0 \
     six==1.16.0 \
-    tqdm==4.62.3
+    tqdm==4.62.3 \
+    matplotlib
 # torch 1.9.1 throws an illegal memory access error
 # in the batchnorm module (but only sometimes)
 RUN pip3 install torch==1.8.1+cu111 -f https://download.pytorch.org/whl/torch_stable.html
@@ -46,3 +50,4 @@ RUN cd /otoc/lib/spconv && \
 # Compile pointgroup_ops
 # need to change the architecture to match gpu
 RUN cd /otoc/lib/pointgroup_ops && python3 setup.py develop
+ENV PYTHONPATH=/otoc:$PYTHONPATH
