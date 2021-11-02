@@ -3,7 +3,7 @@ ScanNet v2 Dataloader (Modified from SparseConvNet Dataloader)
 Written by Li Jiang
 '''
 
-import os, sys, glob, math, numpy as np
+import sys,math, numpy as np
 import scipy.ndimage
 import scipy.interpolate
 import torch
@@ -11,30 +11,29 @@ from torch.utils.data import DataLoader
 import random
 sys.path.append('../')
 
-from util.config import cfg
-from util.log import logger
-from lib.pointgroup_ops.functions import pointgroup_ops
+# from util.log import logger
+from pointgroup_ops.functions import pointgroup_ops
 from data.dataset import Scannet
 
 class Dataset:
-    def __init__(self, test=False):
-        self.data_root = cfg.data_root
-        self.dataset = cfg.dataset
-        self.filename_suffix = cfg.filename_suffix
+    def __init__(self, cfg, test=False):
+        self.data_root = cfg['DATA']['data_root']
+        self.dataset = cfg['DATA']['dataset']
+        self.filename_suffix = cfg['DATA']['filename_suffix']
 
-        self.batch_size = cfg.batch_size
-        self.train_workers = cfg.train_workers
-        self.val_workers = cfg.train_workers
+        self.batch_size = cfg['DATA']['batch_size']
+        self.train_workers = cfg['TRAIN']['train_workers']
+        self.val_workers = cfg['TRAIN']['train_workers']
 
-        self.full_scale = cfg.full_scale
-        self.scale = cfg.scale
-        self.max_npoint = cfg.max_npoint
-        self.mode = cfg.mode
+        self.full_scale = cfg['DATA']['full_scale']
+        self.scale = cfg['DATA']['scale']
+        self.max_npoint = cfg['DATA']['max_npoint']
+        self.mode = cfg['DATA']['mode']
 
         if test:
-            self.test_split = cfg.split  # val or test
-            self.test_workers = cfg.test_workers
-            cfg.batch_size = 1
+            self.test_split = cfg['TEST']['split']  # val or test
+            self.test_workers = cfg['TEST']['test_workers']
+            self.batch_size = 1
 
 
     def trainLoader(self):
