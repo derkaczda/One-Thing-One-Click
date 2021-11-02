@@ -13,7 +13,6 @@ from collections import OrderedDict
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
-print(os.path.join(os.path.dirname(__file__), "../.."))
 
 from pointgroup_ops.functions import pointgroup_ops
 # from util import utils
