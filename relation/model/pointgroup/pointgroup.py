@@ -123,27 +123,27 @@ class PointGroup(nn.Module):
     def __init__(self, cfg):
         super().__init__()
 
-        input_c = cfg.input_channel
-        m = cfg.m
+        input_c = cfg["DATA"]["input_channel"]
+        m = cfg["STRUCTURE"]["m"]
         self.m=m
-        classes = cfg.classes
-        block_reps = cfg.block_reps
-        block_residual = cfg.block_residual
+        classes = cfg["DATA"]["classes"]
+        block_reps = cfg["STRUCTURE"]["block_reps"]
+        block_residual = cfg["STRUCTURE"]["block_residual"]
 
-        self.cluster_radius = cfg.cluster_radius
-        self.cluster_meanActive = cfg.cluster_meanActive
-        self.cluster_shift_meanActive = cfg.cluster_shift_meanActive
-        self.cluster_npoint_thre = cfg.cluster_npoint_thre
+        self.cluster_radius = cfg["GROUP"]["cluster_radius"]
+        self.cluster_meanActive = cfg["GROUP"]["cluster_meanActive"]
+        self.cluster_shift_meanActive = cfg["GROUP"]["cluster_shift_meanActive"]
+        self.cluster_npoint_thre = cfg["GROUP"]["cluster_npoint_thre"]
 
-        self.score_scale = cfg.score_scale
-        self.score_fullscale = cfg.score_fullscale
-        self.mode = cfg.score_mode
+        self.score_scale = cfg["TRAIN"]["score_scale"]
+        self.score_fullscale = cfg["TRAIN"]["score_fullscale"]
+        self.mode = cfg["TRAIN"]["score_mode"]
 
-        self.prepare_epochs = cfg.prepare_epochs
+        self.prepare_epochs = cfg["GROUP"]["prepare_epochs"]
 
-        self.pretrain_path = cfg.pretrain_path
-        self.pretrain_module = cfg.pretrain_module
-        self.fix_module = cfg.fix_module
+        self.pretrain_path = cfg["TRAIN"]["pretrain_path"]
+        self.pretrain_module = cfg["TRAIN"]["pretrain_module"]
+        self.fix_module = cfg["TRAIN"]["fix_module"]
 
         norm_fn = functools.partial(nn.BatchNorm1d, eps=1e-4, momentum=0.1)
 
@@ -152,7 +152,7 @@ class PointGroup(nn.Module):
         else:
             block = VGGBlock
 
-        if cfg.use_coords:
+        if cfg["STRUCTURE"]["use_coords"]:
             input_c += 3
 
         #### backbone
@@ -161,7 +161,7 @@ class PointGroup(nn.Module):
         )
 
         self.unet = UBlock([m, 2*m, 3*m, 4*m, 5*m, 6*m, 7*m], norm_fn, block_reps, block, indice_key_id=1)
-        
+
         self.output_layer = spconv.SparseSequential(
             norm_fn(m) #,
             #nn.ReLU()
@@ -294,7 +294,7 @@ class PointGroup(nn.Module):
         '''#### offset
         pt_offsets_feats = self.offset(output_feats)
         pt_offsets = self.offset_linear(pt_offsets_feats)   # (N, 3), float32
-        
+
         pt_offsets[:]=0
 
         ret['pt_offsets'] = pt_offsets
@@ -321,8 +321,8 @@ class PointGroup(nn.Module):
             proposals_idx[:, 1] = object_idxs[proposals_idx[:, 1].long()].int()
             # proposals_idx: (sumNPoint, 2), int, dim 0 for cluster_id, dim 1 for corresponding point idxs in N
             # proposals_offset: (nProposal + 1), int
-            
-            
+
+
             print (proposals_idx_shift.shape,proposals_idx.shape)
             print (proposals_offset_shift,proposals_offset.shape)
 
@@ -356,9 +356,9 @@ def model_fn_decorator(test=False):
 
     def test_model_fn(batch, model, epoch):
         #print ('test model fn')
-        
+
         feats=torch.zeros((20,16))
-        
+
         coords = batch['locs'].cuda()              # (N, 1 + 3), long, cuda, dimension 0 for batch_idx
         voxel_coords = batch['voxel_locs'].cuda()  # (M, 1 + 3), long, cuda
         p2v_map = batch['p2v_map'].cuda()          # (N), int, cuda
@@ -373,7 +373,7 @@ def model_fn_decorator(test=False):
         labels = batch['labels']
         groups=batch['groups']
         group2points=batch['group2points']
-        
+
         if cfg.use_coords:
             feats = torch.cat((feats, coords_float), 1)
         voxel_feats = pointgroup_ops.voxelization(feats, v2p_map, cfg.mode)  # (M, C), float, cuda
@@ -385,29 +385,29 @@ def model_fn_decorator(test=False):
         result=torch.zeros((output_feats.shape[0]))
         result_feat=torch.zeros((output_feats.shape[0],32))
         #for group in groups:
-        
+
         #print ('len',len(groups),groups)
-        
+
         feat_voxel=[]
         gt_voxel=[]
         rgb_voxel=[]
-        
+
         group=groups[0]
         for i in range(20):
           for s in range(len(group[i])):
 
             idxs=group2points[0][group[i][s]]
-            feats=output_feats[idxs] 
-            #rgbs=feats[idxs]  
+            feats=output_feats[idxs]
+            #rgbs=feats[idxs]
             feat=torch.mean(feats,0)
             #rgb=torch.mean(rgbs,0)
             #feat_voxel.append(feat.detach().cpu().numpy())
             #gt_voxel.append(i)
             #rgb_voxel.append(rgb.detach().cpu().numpy())
-        
-        
+
+
             #stdfeat=torch.Tensor(torch.load('exp/scannetv2/pointgroup/pointgroup_run1_scannet/pointgroup_run1_scannet-000000074_feat.pth')).cuda()
-    
+
             product=torch.matmul(feat,torch.transpose(model.feat,0,1))
             #print (i,int(torch.argmax(product)),product)
             #result[idxs]=int(torch.argmax(product))
@@ -417,12 +417,12 @@ def model_fn_decorator(test=False):
               products[idx,:]=product
             #print (int(torch.argmax(product)))
             #print ('idxs',len(idxs),idxs)
-            
+
         #print ('unique',torch.unique(result))
-        #semantic_scores=torch.argmax(product,1)        
-        
-        
-        
+        #semantic_scores=torch.argmax(product,1)
+
+
+
         '''feats=np.zeros((20,16))
         labels=np.zeros((20))
         for i in range(feat.shape[0]):
@@ -434,8 +434,8 @@ def model_fn_decorator(test=False):
           feats[i,:]/=labels[i]'''
 
         #print (feat.shape,label.shape)
-        
-        
+
+
         #semantic_scores = ret['semantic_scores']  # (N, nClass) float32, cuda
         '''pt_offsets = ret['pt_offsets']            # (N, 3), float32, cuda
         if (epoch > cfg.prepare_epochs):
@@ -444,15 +444,15 @@ def model_fn_decorator(test=False):
 
 
         '''product=torch.matmul(feat,torch.transpose(model.feat,0,1))
-        
-        
+
+
         print ('product',product.shape)
-        
+
         result=torch.argmax(product,1)
-        
+
         print ('result',result.shape)'''
-        
-                                                                                
+
+
 
         #loss_inp = {}
         #loss_inp['semantic_scores'] = (product, label)
@@ -506,8 +506,8 @@ def model_fn_decorator(test=False):
             group=groups[g]
             for i in range(20):
                 for s in range(len(group[i])):
-                    classes[i].append((i,g,group[i][s]))  
-         
+                    classes[i].append((i,g,group[i][s]))
+
         ignore=[]
         mini=10 #min(min(map(len, classes)),30)
         for i in range(20):
@@ -521,7 +521,7 @@ def model_fn_decorator(test=False):
               while(len(classes[i])<10):
                 classes[i].append(random.choice(classes[i]))
 
-        
+
 
         '''for i in range(20):
             if len(classes[i])==0:
@@ -530,15 +530,15 @@ def model_fn_decorator(test=False):
                 poss.append((random.choice(classes[i]),random.choice(classes[i])))
             for j in range(20):
                 if j==i or len(classes[j])==0:
-                  continue 
+                  continue
                 negs.append((random.choice(classes[i]),random.choice(classes[j])))
             while(len(negs)<20):
                 j=random.randint(0,19)
                 if j==i or len(classes[j])==0:
-                  continue 
+                  continue
                 negs.append((random.choice(classes[i]),random.choice(classes[j])))
-        
-        
+
+
         posidxs=[]
         for pos in poss:
             c0 = pos[0][0]
@@ -573,7 +573,7 @@ def model_fn_decorator(test=False):
         if cfg.use_coords:
             feats = torch.cat((feats, coords_float), 1)
         voxel_feats = pointgroup_ops.voxelization(feats, v2p_map, cfg.mode)  # (M, C), float, cuda
-        
+
         input_ = spconv.SparseConvTensor(voxel_feats, voxel_coords.int(), spatial_shape, cfg.batch_size)
 
         ret, output_feats = model(input_, p2v_map, coords_float, coords[:, 0].int(), batch_offsets, epoch)
@@ -581,11 +581,11 @@ def model_fn_decorator(test=False):
         #print (torch.unique(voxel_feats),output_feats)
 
 
-        tmpfeat=torch.Tensor(20,mini,model.m).cuda() 
+        tmpfeat=torch.Tensor(20,mini,model.m).cuda()
 
-        
+
         label=torch.zeros(20*mini).long().cuda()
-        
+
         for i in range(20):
           if i in ignore:
             tmpfeat[i,:,:]=0
@@ -598,7 +598,7 @@ def model_fn_decorator(test=False):
             idx0 = sample[2]
             #print ('fffff',group2points[b0].keys())
             idx_off = torch.tensor(np.asarray(group2points[b0][idx0])) + batch['offsets'][b0]
-            feat=output_feats[idx_off]   
+            feat=output_feats[idx_off]
             feat=torch.mean(feat,0)
             tmpfeat[i,j,:]=feat
 
@@ -612,7 +612,7 @@ def model_fn_decorator(test=False):
           model.feat=torch.mean(tmpfeat.detach(),1)
         else:
           model.feat=0.9*model.feat+0.1*torch.mean(tmpfeat.detach(),1)
-          
+
 
 
 
@@ -630,9 +630,9 @@ def model_fn_decorator(test=False):
         '''posfeat=torch.zeros((10,128*2))
         for j in range(len(posidxs)):
           posidx=posidxs[j]
-          feat0=output_feats[posidx[0]]      
+          feat0=output_feats[posidx[0]]
           feat0=torch.mean(feat0,0)
-          feat1=output_feats[posidx[1]]      
+          feat1=output_feats[posidx[1]]
           feat1=torch.mean(feat0,0)
           feat=torch.cat((feat0,feat1),1)
           posfeat[j][:128]=feat0
@@ -642,9 +642,9 @@ def model_fn_decorator(test=False):
         negfeat=torch.zeros((20,128*2))
         for j in range(len(negidxs)):
           negidx=negidxs[j]
-          feat0=output_feats[negidx[0]]      
+          feat0=output_feats[negidx[0]]
           feat0=torch.mean(feat0,0)
-          feat1=output_feats[negidx[1]]      
+          feat1=output_feats[negidx[1]]
           feat1=torch.mean(feat0,0)
           feat=torch.cat((feat0,feat1),1)
           negfeat[j][:128]=feat0
@@ -669,7 +669,7 @@ def model_fn_decorator(test=False):
             preds = {}
             #preds['semantic'] = semantic_scores
 
-            
+
             visual_dict = {}
             visual_dict['loss'] = loss
             for k, v in loss_out.items():
