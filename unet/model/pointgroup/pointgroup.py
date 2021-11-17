@@ -30,8 +30,8 @@ class ResidualBlock(SparseModule):
             )
 
         self.conv_branch = spconv.SparseSequential(
-            # norm_fn(in_channels),
-            nn.BatchNorm1d(in_channels, eps=1e-4, momentum=0.1),
+            norm_fn(in_channels),
+            # nn.BatchNorm1d(in_channels, eps=1e-4, momentum=0.1),
             nn.ReLU(),
             spconv.SubMConv3d(
                 in_channels,
@@ -41,8 +41,8 @@ class ResidualBlock(SparseModule):
                 bias=False,
                 indice_key=indice_key,
             ),
-            # norm_fn(out_channels),
-            nn.BatchNorm1d(out_channels, eps=1e-4, momentum=0.1),
+            norm_fn(out_channels),
+            # nn.BatchNorm1d(out_channels, eps=1e-4, momentum=0.1),
             nn.ReLU(),
             spconv.SubMConv3d(
                 out_channels,
@@ -325,7 +325,7 @@ class PointGroup(nn.Module):
 
         return voxelization_feats, inp_map
 
-    def forward(self, input, input_map, coords, batch_idxs, batch_offsets, epoch):
+    def forward(self, input, input_map):
         """
         :param input_map: (N), int, cuda
         :param coords: (N, 3), float, cuda
@@ -343,7 +343,7 @@ class PointGroup(nn.Module):
         #### semantic segmentation
         semantic_scores = self.linear(output_feats)  # (N, nClass), float
 
-        semantic_preds = semantic_scores.max(1)[1]  # (N), long
+        # semantic_preds = semantic_scores.max(1)[1]  # (N), long
 
         ret["semantic_scores"] = semantic_scores
         ret["feats"] = output_feats
