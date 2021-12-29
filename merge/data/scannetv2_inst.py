@@ -14,10 +14,12 @@ sys.path.append('../')
 from util.config import cfg
 from util.log import logger
 from lib.pointgroup_ops.functions import pointgroup_ops
+from .dataset import Scannet
 
 class Dataset:
     def __init__(self, test=False):
         self.data_root = cfg.data_root
+        # self.result_root = cfg.result_root
         self.dataset = cfg.dataset
         self.filename_suffix = cfg.filename_suffix
 
@@ -37,78 +39,84 @@ class Dataset:
 
 
     def trainLoader(self):
-        #do not use this 
-        train_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
+        #do not use this
+        # train_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
 
-        self.train_files = []
-        for i in train_file_names:
-          print (i)
-          self.train_files.append(torch.load(i))
+        # self.train_files = []
+        # for i in train_file_names:
+        #   # print (i)
+        #   self.train_files.append(torch.load(i))
 
 
-        logger.info('Training samples: {}'.format(len(self.train_files)))
+        # logger.info('Training samples: {}'.format(len(self.train_files)))
 
+        # train_set = list(range(len(self.train_files)))
+        # self.train_data_loader = DataLoader(train_set, batch_size=self.batch_size, collate_fn=self.trainMerge, num_workers=self.train_workers,
+        #                                     shuffle=True, sampler=None, drop_last=True, pin_memory=True)
+        self.train_files = Scannet(self.data_root, self.dataset, self.filename_suffix)
         train_set = list(range(len(self.train_files)))
         self.train_data_loader = DataLoader(train_set, batch_size=self.batch_size, collate_fn=self.trainMerge, num_workers=self.train_workers,
                                             shuffle=True, sampler=None, drop_last=True, pin_memory=True)
 
 
     def valLoader(self):
-        val_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, 'val_fully', '*' + self.filename_suffix)))
-        self.val_file_names=val_file_names
-        self.val_files = [torch.load(i) for i in val_file_names]
+        # val_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, 'val_fully', '*' + self.filename_suffix)))
+        # self.val_file_names=val_file_names
+        # self.val_files = [torch.load(i) for i in val_file_names]
 
-        logger.info('Validation samples: {}'.format(len(self.val_files)))
+        # logger.info('Validation samples: {}'.format(len(self.val_files)))
 
+        # val_set = list(range(len(self.val_files)))
+        # self.val_data_loader = DataLoader(val_set, batch_size=self.batch_size, collate_fn=self.valMerge, num_workers=self.val_workers,
+        #                                   shuffle=False, drop_last=False, pin_memory=True)
+
+        self.val_files = Scannet(self.data_root, self.dataset, self.filename_suffix)
         val_set = list(range(len(self.val_files)))
         self.val_data_loader = DataLoader(val_set, batch_size=self.batch_size, collate_fn=self.valMerge, num_workers=self.val_workers,
                                           shuffle=False, drop_last=False, pin_memory=True)
 
-
     def testLoader(self):
         self.test_file_names = sorted(glob.glob(os.path.join(self.data_root, self.dataset, '*' + self.filename_suffix)))
-        
+
         self.test_file_names.sort()
         self.test_file_names=self.test_file_names[0:]
-        
+
         self.test_files=[]
         cnt=0
         for i in self.test_file_names:
           print (i)
-          cnt+=1        
+          cnt+=1
           data=torch.load(i)
           name=i.split('/')[-1]
           '''fn3 = self.data_root+'/scans/'+name[:12]+'/'+name[:12]+'_vh_clean_2.0.010000.segs.json'
-
           with open(fn3) as jsondata:
             d = json.load(jsondata)
             seg = d['segIndices']'''
           seg=data[-1]
-            
-          
 
-          
+
+
+
           full_group=np.unique(seg)
-          
+
           full_group=full_group.tolist()
-          
-          
+
+
           full_group2point=seg
           data=list(data)
           data.append(full_group)
           data.append(full_group2point)
           data.append(i)
           data=tuple(data)
-          
-          
-          
+
+
+
           self.test_files.append(data)
         logger.info('Testing samples ({}): {}'.format(self.test_split, len(self.test_files)))
 
         test_set = list(np.arange(len(self.test_files)))
         self.test_data_loader = DataLoader(test_set, batch_size=1, collate_fn=self.testMerge, num_workers=self.test_workers,
                                            shuffle=True, drop_last=False, pin_memory=True)
-
     #Elastic distortion
     def elastic(self, x, gran, mag):
         blur0 = np.ones((3, 1, 1)).astype('float32') / 3
