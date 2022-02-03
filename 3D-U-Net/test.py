@@ -196,7 +196,7 @@ if __name__ == '__main__':
     #logger.info('=> creating model ...')
     ##logger.info('Classes: {}'.format(cfg.classes))
 
-    cfg.dataset='train_weakly'
+    cfg.dataset='val_weakly'
 
     if model_name == 'pointgroup':
         from model.pointgroup.pointgroup import PointGroup as Network
