@@ -108,7 +108,7 @@ def non_max_suppression(ious, scores, threshold):
 
 if __name__ == '__main__':
     init()
-    cfg.dataset='train_weakly'
+    cfg.dataset='val_weakly'
     ##### get model version and data version
     exp_name = cfg.config.split('/')[-1][:-5]
     model_name = exp_name.split('_')[0]
