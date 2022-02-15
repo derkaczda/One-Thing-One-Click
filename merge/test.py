@@ -15,6 +15,8 @@ from util.log import logger
 import util.utils as utils
 import util.eval as eval
 from util_iou import *
+from matplotlib import cm
+import open3d as o3d
 
 def init():
     global result_dir
@@ -58,6 +60,7 @@ def test(model, model_fn, data_name, epoch):
     intersection_meter = AverageMeter()
     union_meter = AverageMeter()
     target_meter = AverageMeter()
+    colormap = cm.get_cmap('tab20c', 22)
     with torch.no_grad():
         model = model.eval()
         start = time.time()
@@ -66,6 +69,7 @@ def test(model, model_fn, data_name, epoch):
         for i, batch in enumerate(dataloader):
             N = batch['feats'].shape[0]
             test_scene_name = dataset.test_file_names[int(batch['id'][0])].split('/')[-1][:12]
+            test_data = dataset.test_files[int(batch['id'][0])]
 
             start1 = time.time()
             preds = model_fn(batch, model, epoch)
@@ -78,8 +82,18 @@ def test(model, model_fn, data_name, epoch):
 
             labels=batch['labels'].detach().cpu().numpy()
             
+            unique_label = np.unique(labels)
+            print(f"unique_label: {unique_label}")
+            labels[labels==-100] = 20
+            colored_label = [np.array(colormap(x))[:-1] for x in labels]
+            points = np.array(test_data[0])
+
+            pc = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(points))
+            pc.colors = o3d.utility.Vector3dVector(colored_label)
+            o3d.io.write_point_cloud(f"/result/pred/{test_scene_name}.ply", pc)
+
             
-            f1=open('result/pred/'+test_scene_name+'.txt','w')
+            f1=open('/result/pred/'+test_scene_name+'.txt','w')
             for j in range(labels.shape[0]):
               f1.write(str(int(semantic_pred[j]))+'\n')
             f1.close()
