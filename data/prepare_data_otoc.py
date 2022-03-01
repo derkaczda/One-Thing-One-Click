@@ -81,6 +81,13 @@ def f(fn):
     f2 = plyfile.PlyData().read(fn2)
     sem_labels = remapper[np.array(f2.elements[0]['label'])]
 
+    with open(os.path.join(opt.dest, f"{name[:12]}_gt.txt"), 'w') as file:
+        for j in range(sem_labels.shape[0]):
+            file.write(str(int(sem_labels[j])) + '\n')
+
+        print(f"wrote file {os.path.join(opt.dest, f'{name[:12]}_gt.txt')}")
+
+
     with open(fn3) as jsondata:
         d = json.load(jsondata)
         seg = d['segIndices']

@@ -13,6 +13,7 @@ if __name__ == '__main__':
     os.makedirs(args.dest, exist_ok=True)
 
     file_postfix = "_vh_clean_2.ply_inst_nostuff.pth"
+    file_postfix = "_gt.txt"
     with open(args.split_file, "r") as f:
         lines = f.readlines()
 
