@@ -6,8 +6,8 @@ Modified by Zhengzhe Liu
 
 import torch
 import torch.nn as nn
-import spconv
-from spconv.modules import SparseModule
+import spconv.pytorch as spconv
+from spconv.pytorch.modules import SparseModule
 import functools
 from collections import OrderedDict
 import sys

@@ -5,10 +5,10 @@ Written by Li Jiang
 
 import torch
 import torch.nn as nn
-import spconv
+import spconv.pytorch as spconv
 import numpy as np
 import random
-from spconv.modules import SparseModule
+from spconv.pytorch.modules import SparseModule
 import functools
 from collections import OrderedDict
 import sys
