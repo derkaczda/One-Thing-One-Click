@@ -63,7 +63,11 @@ class ResidualBlock(SparseModule):
         # print(input)
         # print(self.indice_key)
         output = self.conv_branch(input)
-        output.features += self.i_branch(identity).features
+        # output.features += self.i_branch(identity).features
+
+        output = output.replace_feature(
+            output.features + self.i_branch(identity).features
+        )
 
         return output
 
@@ -163,8 +167,13 @@ class UBlock(nn.Module):
             output_decoder = self.u(output_decoder)
             output_decoder = self.deconv(output_decoder)
 
-            output.features = torch.cat(
-                (identity.features, output_decoder.features), dim=1
+            # output.features = torch.cat(
+                # (identity.features, output_decoder.features), dim=1
+            # )
+            output = output.replace_feature(
+                torch.cat(
+                    (identity.features, output_decoder.features), dim=1
+                )
             )
 
             output = self.blocks_tail(output)
